@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pedidos de Restaurante</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .produto { display: flex; justify-content: space-between; margin: 10px 0; }
+  </style>
+</head>
+<body>  
+  <h1>Faça seu pedido</h1>
+
+  <div>
+    <h3>Produtos Disponíveis</h3>
+    <div id="produtos-disponiveis"></div> <!-- Lista de produtos disponíveis -->
+  </div>
+
+  <div>
+    <h3>Seu Carrinho</h3>
+    <div id="produtos-carrinho"></div> <!-- Carrinho de compras -->
+  </div>
+
+  <h3>Total: R$ <span id="total">0</span></h3>
+  <button onclick="enviarParaWhatsapp()">Enviar Pedido</button>
+
+  <script>
+    // Lista de produtos disponíveis
+    const produtos = [
+      { id: 1, nome: 'Hambúrguer', preco: 15.00 },
+      { id: 2, nome: 'Pizza', preco: 30.00 },
+      { id: 3, nome: 'Refrigerante', preco: 5.00 },
+    ];
+
+    // Carrinho de compras
+    let carrinho = [];
+    const divProdutosDisponiveis = document.getElementById('produtos-disponiveis');
+    const divProdutosCarrinho = document.getElementById('produtos-carrinho');
+    const divTotal = document.getElementById('total');
+
+    // Função que atualiza o carrinho e recalcula o total
+    function atualizarCarrinho() {
+      divProdutosCarrinho.innerHTML = '';  // Limpa a área do carrinho antes de mostrar novamente
+      let total = 0;
+      
+      carrinho.forEach(item => {
+        total += item.preco * item.quantidade;
+        divProdutosCarrinho.innerHTML += `
+          <div id="produto-${item.id}" class="produto">
+            <span>${item.nome} - R$ ${item.preco.toFixed(2)} x ${item.quantidade}</span>
+            <button onclick="removerDoCarrinho(${item.id})">Remover</button>
+          </div>`;
+      });
+      
+      divTotal.innerText = total.toFixed(2);  // Atualiza o valor total
+    }
+
+    // Função para adicionar produtos ao carrinho
+    function adicionarAoCarrinho(produtoId) {
+      const produto = produtos.find(p => p.id === produtoId);
+      const itemCarrinho = carrinho.find(item => item.id === produtoId);
+      if (itemCarrinho) {
+        itemCarrinho.quantidade++;  // Aumenta a quantidade se o item já estiver no carrinho
+      } else {
+        carrinho.push({ ...produto, quantidade: 1 });  // Adiciona o item com quantidade 1 se ainda não estiver no carrinho
+      }
+      atualizarCarrinho();
+    }
+
+    // Função para remover produtos do carrinho
+    function removerDoCarrinho(produtoId) {
+      const itemCarrinho = carrinho.find(item => item.id === produtoId);
+      if (itemCarrinho.quantidade > 1) {
+        itemCarrinho.quantidade--;  // Diminui a quantidade se for maior que 1
+      } else {
+        carrinho = carrinho.filter(item => item.id !== produtoId);  // Remove o item se a quantidade for 1
+      }
+      atualizarCarrinho();
+    }
+
+    // Função para enviar o pedido pelo WhatsApp
+    function enviarParaWhatsapp() {
+      if (carrinho.length === 0) {
+        alert('Seu carrinho está vazio!');
+        return;
+      }
+
+      let mensagem = 'Pedido: \n';
+      carrinho.forEach(item => {
+        mensagem += `${item.nome} - Quantidade: ${item.quantidade}\n`;
+      });
+      mensagem += `Total: R$ ${divTotal.innerText}`;
+      const whatsappURL = `https://wa.me/27997416086?text=${encodeURIComponent(mensagem)}`;
+      window.open(whatsappURL, '_blank');
+    }
+
+    // Função para mostrar os produtos disponíveis com botões de adicionar
+    function mostrarProdutosDisponiveis() {
+      produtos.forEach(produto => {
+        const botao = document.createElement('button');
+        botao.innerText = `Adicionar ${produto.nome}`;
+        botao.onclick = () => adicionarAoCarrinho(produto.id);
+        divProdutosDisponiveis.appendChild(botao);
+      });
+    }
+
+    // Inicializa mostrando os produtos disponíveis
+    mostrarProdutosDisponiveis();
+  </script>
+</body>
+</html>

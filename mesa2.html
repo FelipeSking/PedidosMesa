@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pedidos de Restaurante</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .produto { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+    .imagem-produto { width: 80px; height: 80px; object-fit: cover; }
+    .categoria { margin-bottom: 20px; }
+  </style>
+</head>
+<body>  
+  <h1>Faça seu pedido</h1>
+
+  <div>
+    <h3>Bebidas</h3>
+    <div id="bebidas"></div> <!-- Lista de bebidas -->
+  </div>
+
+  <div>
+    <h3>Entradas</h3>
+    <div id="entradas"></div> <!-- Lista de entradas -->
+  </div>
+
+  <div>
+    <h3>Pratos</h3>
+    <div id="pratos"></div> <!-- Lista de pratos -->
+  </div>
+
+  <div>
+    <h3>Drinks</h3>
+    <div id="drinks"></div> <!-- Lista de drinks -->
+  </div>
+
+  <div>
+    <h3>Seu Carrinho</h3>
+    <div id="produtos-carrinho"></div> <!-- Carrinho de compras -->
+  </div>
+
+  <h3>Total: R$ <span id="total">0</span></h3>
+  <button onclick="enviarParaWhatsapp()">Enviar Pedido</button>
+
+  <script>
+    // Lista de produtos disponíveis com suas categorias e imagens
+    const produtos = [
+      { id: 1, nome: 'Hambúrguer', preco: 15.00, categoria: 'pratos', imagem: 'https://via.placeholder.com/80' },
+      { id: 2, nome: 'Pizza', preco: 30.00, categoria: 'pratos', imagem: 'https://via.placeholder.com/80' },
+      { id: 3, nome: 'Refrigerante', preco: 5.00, categoria: 'bebidas', imagem: 'https://via.placeholder.com/80' },
+      { id: 4, nome: 'Caipirinha', preco: 12.00, categoria: 'drinks', imagem: 'https://via.placeholder.com/80' },
+      { id: 5, nome: 'Salada', preco: 8.00, categoria: 'entradas', imagem: 'https://via.placeholder.com/80' }
+    ];
+
+    // Carrinho de compras
+    let carrinho = [];
+    const categorias = {
+      bebidas: document.getElementById('bebidas'),
+      entradas: document.getElementById('entradas'),
+      pratos: document.getElementById('pratos'),
+      drinks: document.getElementById('drinks')
+    };
+    const divProdutosCarrinho = document.getElementById('produtos-carrinho');
+    const divTotal = document.getElementById('total');
+
+    // Atualiza o carrinho e recalcula o total
+    function atualizarCarrinho() {
+      divProdutosCarrinho.innerHTML = '';  // Limpa a área do carrinho antes de mostrar novamente
+      let total = 0;
+      
+      carrinho.forEach(item => {
+        total += item.preco * item.quantidade;
+        divProdutosCarrinho.innerHTML += `
+          <div id="produto-${item.id}" class="produto">
+            <span>${item.nome} - R$ ${item.preco.toFixed(2)} x ${item.quantidade}</span>
+            <button onclick="removerDoCarrinho(${item.id})">Remover</button>
+          </div>`;
+      });
+      
+      divTotal.innerText = total.toFixed(2);  // Atualiza o valor total
+    }
+
+    // Adiciona o produto ao carrinho
+    function adicionarAoCarrinho(produtoId) {
+      const produto = produtos.find(p => p.id === produtoId);
+      const itemCarrinho = carrinho.find(item => item.id === produtoId);
+      if (itemCarrinho) {
+        itemCarrinho.quantidade++;  // Aumenta a quantidade se o item já estiver no carrinho
+      } else {
+        carrinho.push({ ...produto, quantidade: 1 });  // Adiciona o item com quantidade 1
+      }
+      atualizarCarrinho();
+    }
+
+    // Remove o produto do carrinho ou diminui a quantidade
+    function removerDoCarrinho(produtoId) {
+      const itemCarrinho = carrinho.find(item => item.id === produtoId);
+      if (itemCarrinho.quantidade > 1) {
+        itemCarrinho.quantidade--;  // Diminui a quantidade
+      } else {
+        carrinho = carrinho.filter(item => item.id !== produtoId);  // Remove o item
+      }
+      atualizarCarrinho();
+    }
+
+    // Envia o pedido via WhatsApp
+    function enviarParaWhatsapp() {
+      if (carrinho.length === 0) {
+        alert('Seu carrinho está vazio!');
+        return;
+      }
+
+      let mensagem = 'Pedido: \n';
+      carrinho.forEach(item => {
+        mensagem += `${item.nome} - Quantidade: ${item.quantidade}\n`;
+      });
+      mensagem += `Total: R$ ${divTotal.innerText}`;
+      const whatsappURL = `https://wa.me/SEU_NUMERO_AQUI?text=${encodeURIComponent(mensagem)}`;
+      window.open(whatsappURL, '_blank');
+    }
+
+    // Função para mostrar os produtos disponíveis, separados por categoria
+    function mostrarProdutosDisponiveis() {
+      produtos.forEach(produto => {
+        const produtoDiv = document.createElement('div');
+        produtoDiv.classList.add('produto');
+        produtoDiv.innerHTML = `
+          <img src="${produto.imagem}" alt="${produto.nome}" class="imagem-produto">
+          <span>${produto.nome} - R$ ${produto.preco.toFixed(2)}</span>
+          <button onclick="adicionarAoCarrinho(${produto.id})">Adicionar</button>
+        `;
+        categorias[produto.categoria].appendChild(produtoDiv);  // Adiciona o produto à sua respectiva categoria
+      });
+    }
+
+    // Inicializa mostrando os produtos disponíveis por categoria
+    mostrarProdutosDisponiveis();
+  </script>
+</body>
+</html>
